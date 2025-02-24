@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SavvyCent - Every cent counts, and your AI knows it.",
-  description: "SavvyCent is a personal finance app that helps you save money.",
+  description: "SavvyCent is a personal finance app that helps  you save money.",
 };
 
 export default function RootLayout({
