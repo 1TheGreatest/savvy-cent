@@ -2,5 +2,9 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 export default function Home() {
-  return <Button>Go Home</Button>;
+  return (
+    <div className="mt-40">
+      <Button>Go Home</Button>
+    </div>
+  );
 }
