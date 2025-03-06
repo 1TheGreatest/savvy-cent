@@ -33,7 +33,7 @@ model Account {
   id           String        @id @default(uuid())
   name         String
   type         AccountType   // limited values (CURRENT, SAVINGS)
-  balance      Decimal       @default(0) // will ask inital balance while creating an account
+  balance      Decimal       @default(0) // will ask initial balance while creating an account
   isDefault    Boolean       @default(false)
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
