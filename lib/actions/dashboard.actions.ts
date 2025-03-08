@@ -75,3 +75,43 @@ export async function createAccount({
     handleError(error, "Error creating account");
   }
 }
+
+// getUserAccounts fetches all accounts for the logged in user
+export const getUserAccounts = async () => {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+      where: {
+        clerkUserId: userId,
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const existingAccounts = await db.account.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        isDefault: "desc",
+      },
+      include: {
+        _count: {
+          select: { transactions: true },
+        },
+      },
+    });
+
+    // Serialize the accounts before returning because next.js does not support decimal values
+    const serializedAccounts = existingAccounts.map(serializeTransaction);
+
+    return serializedAccounts;
+    // return { success: true, data: serializedAccounts };
+  } catch (error) {
+    handleError(error, "Error fetching accounts");
+  }
+};
