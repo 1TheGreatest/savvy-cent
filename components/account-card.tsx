@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -9,6 +10,10 @@ import {
 import { Switch } from "./ui/switch";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import CountUp from "react-countup";
+import { updateDefaultAccount } from "@/lib/actions/accounts.actions";
+import useFetch from "@/hooks/use-fetch";
+import { toast } from "sonner";
 
 const AccountCard = ({
   name,
@@ -16,7 +21,39 @@ const AccountCard = ({
   balance,
   id,
   isDefault,
-}: SerializedAccount) => {
+}: SerializedAccountProps) => {
+  const {
+    data: updatedAccount,
+    loading: updateDefaultLoading,
+    error,
+    fn: updateDefaultFn,
+  } = useFetch(updateDefaultAccount);
+
+  useEffect(() => {
+    if (updatedAccount && !updateDefaultLoading) {
+      toast.success("Default account updated successfully");
+    }
+  }, [updateDefaultLoading, updatedAccount]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to update default account. Please try again.");
+    }
+  }, [error]);
+
+  const handleDefaultChange = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault(); // Prevent the switch from toggling
+
+    if (isDefault) {
+      toast.warning("You need to have at least one default account");
+      return; // Do not allow toggling off the default account
+    }
+
+    await updateDefaultFn(id);
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow group relative cursor-pointer">
       <Link href={`/account/${id}`}>
@@ -24,11 +61,19 @@ const AccountCard = ({
           <CardTitle className="text-sm font-medium capitalize">
             {name}
           </CardTitle>
-          <Switch />
+          <Switch
+            checked={isDefault}
+            onClick={handleDefaultChange}
+            disabled={updateDefaultLoading}
+          />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ${parseFloat(balance).toFixed(2)}
+            $
+            <CountUp
+              end={parseFloat(parseFloat(balance).toFixed(2))}
+              duration={0.5}
+            />
           </div>
           <p className="text-sm text-muted-foreground">{type} Account</p>
         </CardContent>

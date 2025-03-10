@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import React from "react";
 
 const DashboardPage = async () => {
-  const accounts = await getUserAccounts();
+  const accounts = (await getUserAccounts()) ?? [];
   return (
     <div className="px-5">
       Budget Progess over all budget account grid
@@ -23,15 +23,6 @@ const DashboardPage = async () => {
         {accounts.length > 0 &&
           accounts.map((account) => (
             <AccountCard key={account.id} {...account} />
-
-            // <Card key={account.id}>
-            //   <CardContent>
-            //     <h3 className="text-lg font-semibold">{account.name}</h3>
-            //     <p className="text-sm text-muted-foreground">
-            //       {account.transactions} transactions
-            //     </p>
-            //   </CardContent>
-            // </Card>
           ))}
       </div>
     </div>

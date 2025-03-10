@@ -6,14 +6,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const serializeTransaction = (obj: SerializedAccount) => {
+export const serializeAccount = (obj: SerializedAccountProps) => {
   const serialized = { ...obj };
   if (obj.balance) {
     serialized.balance = obj.balance.toNumber();
   }
-  // if (obj.amount) {
-  //   serialized.amount = obj.amount.toNumber();
-  // }
+  return serialized;
+};
+export const serializeTransaction = (obj: SerializedTransactionProps) => {
+  const serialized = { ...obj };
+  if (obj.amount) {
+    serialized.amount = obj.amount.toNumber();
+  }
   return serialized;
 };
 

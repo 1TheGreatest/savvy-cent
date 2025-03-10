@@ -2,15 +2,15 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "../prisma";
-import { handleError, serializeTransaction } from "../utils";
+import { handleError, serializeAccount } from "../utils";
 import { revalidatePath } from "next/cache";
 
-export async function createAccount({
+export const createAccount = async ({
   name,
   type,
   balance,
   isDefault,
-}: CreateAccountProps) {
+}: CreateAccountProps) => {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
@@ -67,14 +67,14 @@ export async function createAccount({
     });
 
     // Serialize the account before returning because next.js does not support decimal values
-    const serializedAccount = serializeTransaction(newAccount);
+    const serializedAccount = serializeAccount(newAccount);
 
     revalidatePath("/dashboard");
     return { success: true, data: serializedAccount };
   } catch (error) {
     handleError(error, "Error creating account");
   }
-}
+};
 
 // getUserAccounts fetches all accounts for the logged in user
 export const getUserAccounts = async () => {
@@ -107,7 +107,7 @@ export const getUserAccounts = async () => {
     });
 
     // Serialize the accounts before returning because next.js does not support decimal values
-    const serializedAccounts = existingAccounts.map(serializeTransaction);
+    const serializedAccounts = existingAccounts.map(serializeAccount);
 
     return serializedAccounts;
     // return { success: true, data: serializedAccounts };

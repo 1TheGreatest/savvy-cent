@@ -37,7 +37,7 @@ export default function RootLayout({
 
           <footer className="bg-blue-50 py-12">
             <div className="container mx-auto text-center text-gray-600">
-              <p className=""> Made with love by TheGreatest </p>
+              <p className=""> Made with ❤️ by TheGreatest </p>
             </div>
           </footer>
           <Toaster richColors />

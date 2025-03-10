@@ -75,9 +75,9 @@ const CreateAccountDrawer = ({ children }: { children: React.ReactNode }) => {
     }
   }, [error]);
 
-  async function onSubmit(values: z.infer<typeof accountSchema>) {
+  const onSubmit = async (values: z.infer<typeof accountSchema>) => {
     await createAccountFn(values);
-  }
+  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>

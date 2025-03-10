@@ -5,7 +5,7 @@ declare interface CreateAccountProps {
   isDefault: boolean;
 }
 
-declare interface SerializedAccount {
+declare interface SerializedAccountProps {
   balance: Decimal;
   type: $Enums.AccountType;
   id: string;
@@ -14,4 +14,31 @@ declare interface SerializedAccount {
   updatedAt: Date;
   userId: string;
   isDefault: boolean;
+}
+
+declare interface SerializedTransactionProps {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  type: $Enums.TransactionType;
+  amount: Decimal;
+  description: string | null;
+  date: Date;
+  accountId: string;
+  category: string;
+  isRecurring: boolean;
+  recurringInterval: $Enums.RecurringInterval;
+  status: $Enums.TransactionStatus;
+  receiptUrl: string | null;
+  nextRecurringDate: Date | null;
+  lastProcessed: Date | null;
+}
+
+declare interface TransactionsProps {
+  transactions: SerializedTransactionProps[];
+}
+
+declare interface ParamProps {
+  params: Promise<{ id: string }>;
 }
