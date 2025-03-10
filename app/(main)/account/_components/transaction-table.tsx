@@ -67,18 +67,45 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
   const [typeFilter, setTypeFilter] = useState("");
   const [recurringFilter, setRecurringFilter] = useState("");
 
-  
   const filteredAndSortedTransactions = useMemo(() => {
-     let result = [...transactions];
+    let result = [...transactions];
 
-     // Filter by search term
-     if (searchTerm) {
-       result = result.filter((transaction) =>
-         transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
-       );
-     }
-    
-  }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);;
+    // Filter by search term
+    if (searchTerm) {
+      result = result.filter((transaction) =>
+        transaction.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by type
+    if (typeFilter) {
+      result = result.filter((transaction) => transaction.type === typeFilter);
+    }
+
+    // Filter by recurring
+    if (recurringFilter) {
+      result = result.filter(
+        (transaction) =>
+          (recurringFilter === "RECURRING" && transaction.isRecurring) ||
+          (recurringFilter === "NON-RECURRING" && !transaction.isRecurring)
+      );
+    }
+
+    // Sort by field
+    result = result.sort((a, b) => {
+      if (a[sortConfig.field] < b[sortConfig.field]) {
+        return sortConfig.direction === "asc" ? -1 : 1;
+      }
+      if (a[sortConfig.field] > b[sortConfig.field]) {
+        return sortConfig.direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
 
   const handleSort = (field: string) => {
     setSortConfig((current) => ({
