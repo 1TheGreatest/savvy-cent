@@ -22,6 +22,9 @@ const AccountCard = ({
   id,
   isDefault,
 }: SerializedAccountProps) => {
+
+  // Fetch the updated account data from the server
+  // Invoking the server actions 
   const {
     data: updatedAccount,
     loading: updateDefaultLoading,
@@ -41,6 +44,8 @@ const AccountCard = ({
     }
   }, [error]);
 
+
+  // Handle the default account change
   const handleDefaultChange = async (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {

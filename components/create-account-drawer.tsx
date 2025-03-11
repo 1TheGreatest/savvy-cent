@@ -54,6 +54,8 @@ const CreateAccountDrawer = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
+
+  // Invoking the server actions
   const {
     data: newAccount,
     loading: createAccountLoading,

@@ -6,7 +6,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -33,9 +32,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
-import { format, set } from "date-fns";
+import useFetch from "@/hooks/use-fetch";
+import { bulkDeleteTransactions } from "@/lib/actions/accounts.actions";
+import { format } from "date-fns";
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   Clock,
   MoreHorizontal,
@@ -45,7 +48,11 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { BarLoader } from "react-spinners";
+import { toast } from "sonner";
+
+const ITEMS_PER_PAGE = 10;
 
 const RECURRING_INTERVALS = {
   DAILY: "Daily",
@@ -66,6 +73,37 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [recurringFilter, setRecurringFilter] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const {
+    data: deletedTransactions,
+    loading: deleteLoading,
+    error,
+    fn: bulkDeleteFn,
+  } = useFetch(bulkDeleteTransactions);
+
+  useEffect(() => {
+    if (deletedTransactions && !deleteLoading) {
+      toast.success("Transactions deleted successfully");
+    }
+  }, [deletedTransactions, deleteLoading]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to delete transactions. Please try again.");
+    }
+  }, [error]);
+
+  const handleBulkDelete = () => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedIds.length} items?`
+      )
+    )
+      return;
+    bulkDeleteFn(selectedIds);
+  };
 
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
@@ -95,17 +133,43 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
 
     // Sort by field
     result = result.sort((a, b) => {
-      if (a[sortConfig.field] < b[sortConfig.field]) {
-        return sortConfig.direction === "asc" ? -1 : 1;
+      let comparison = 0;
+
+      switch (sortConfig.field) {
+        case "date":
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case "category":
+          comparison = a.category.localeCompare(b.category);
+          break;
+        case "amount":
+          comparison = a.amount - b.amount;
+          break;
+        default:
+          comparison = 0;
       }
-      if (a[sortConfig.field] > b[sortConfig.field]) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
 
     return result;
   }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(
+    filteredAndSortedTransactions.length / ITEMS_PER_PAGE
+  );
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedTransactions.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
+  }, [filteredAndSortedTransactions, currentPage]);
+
+  const handlePageChange = (newPage: React.SetStateAction<number>) => {
+    setCurrentPage(newPage);
+    setSelectedIds([]); // Clear selections on page change
+  };
 
   const handleSort = (field: string) => {
     setSortConfig((current) => ({
@@ -127,15 +191,10 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
   const handleSelectAll = () => {
     setSelectedIds(
       (current) =>
-        current.length === filteredAndSortedTransactions.length
+        current.length === paginatedTransactions.length
           ? [] // Deselect all if all are selected
-          : filteredAndSortedTransactions.map((item) => item.id) // Select all
+          : paginatedTransactions.map((item) => item.id) // Select all
     );
-  };
-
-  const handleBulkDelete = () => {
-    // deleteFn(selectedIds);
-    setSelectedIds([]);
   };
 
   const handleClearFilters = () => {
@@ -146,6 +205,7 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
   };
   return (
     <div className="space-y-4">
+      {deleteLoading && <BarLoader width={"100%"} color="#54bec7" />}
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -154,16 +214,20 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
             className="pl-8"
             placeholder="Search transactions..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
           ></Input>
         </div>
 
         <div className="flex gap-4">
           <Select
             value={typeFilter}
-            onValueChange={(value) =>
-              setTypeFilter(value as "INCOME" | "EXPENSE")
-            }
+            onValueChange={(value) => {
+              setTypeFilter(value as "INCOME" | "EXPENSE");
+              setCurrentPage(1);
+            }}
           >
             <SelectTrigger id="type">
               <SelectValue placeholder="All Types" />
@@ -176,9 +240,10 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
 
           <Select
             value={recurringFilter}
-            onValueChange={(value) =>
-              setRecurringFilter(value as "RECURRING" | "NON-RECURRING")
-            }
+            onValueChange={(value) => {
+              setRecurringFilter(value as "RECURRING" | "NON-RECURRING");
+              setCurrentPage(1);
+            }}
           >
             <SelectTrigger id="transaction" className="w-[140px]">
               <SelectValue placeholder="All Transactions" />
@@ -190,14 +255,7 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
           </Select>
 
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={
-                handleBulkDelete
-                // deleteFn(selectedIds);
-                //  setSelectedIds([]);
-              }
-            >
+            <Button variant="destructive" onClick={handleBulkDelete}>
               <Trash className="h-4 w-4 mr-1" />
               Delete Selected ({selectedIds.length})
             </Button>
@@ -224,9 +282,8 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
                 <Checkbox
                   onCheckedChange={handleSelectAll}
                   checked={
-                    selectedIds.length ===
-                      filteredAndSortedTransactions.length &&
-                    filteredAndSortedTransactions.length > 0
+                    selectedIds.length === paginatedTransactions.length &&
+                    paginatedTransactions.length > 0
                   }
                 />
               </TableHead>
@@ -278,14 +335,14 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedTransactions.length === 0 ? (
+            {paginatedTransactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center">
                   No transactions found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAndSortedTransactions.map((transaction) => (
+              paginatedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>
                     <Checkbox
@@ -364,7 +421,7 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuLabel
+                        <DropdownMenuItem
                           onClick={() =>
                             router.push(
                               `/transaction/create?edit=${transaction.id}`
@@ -372,11 +429,11 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
                           }
                         >
                           Edit
-                        </DropdownMenuLabel>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive"
-                          //  onClick={() => deleteFn([transaction.id])}
+                          onClick={() => bulkDeleteFn([transaction.id])}
                         >
                           Delete
                         </DropdownMenuItem>
@@ -389,6 +446,30 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
           </TableBody>
         </Table>
       </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
