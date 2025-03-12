@@ -42,3 +42,8 @@ declare interface TransactionsProps {
 declare interface ParamProps {
   params: Promise<{ id: string }>;
 }
+
+declare interface AccumulatorProps {
+  [key: string]: { date: string; income: number; expense: number };
+}
+// { [key: string]: { date: string; income: number; expense: number } }

@@ -331,7 +331,7 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
                 </div>
               </TableHead>
               <TableHead>Recurring</TableHead>
-              <TableHead className="w-[50px]"></TableHead> {/* Actions */}
+              <TableHead className="w-[50px]">{/* Actions */}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
