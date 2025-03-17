@@ -10,7 +10,7 @@ export const getCurrentBudget = async (accountId: string) => {
 
     const user = await db.user.findUnique({
       where: {
-        clerkUserId: userId,
+        clerkUserId: userId, 
       },
     });
 
