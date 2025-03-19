@@ -47,3 +47,18 @@ declare interface AccumulatorProps {
   [key: string]: { date: string; income: number; expense: number };
 }
 // { [key: string]: { date: string; income: number; expense: number } }
+
+declare interface BudgetProgressProps {
+  initialBudget:
+    | {
+        amount: number;
+        id: string;
+        userId: string;
+        createdAt: Date;
+        updatedAt: Date;
+        lastAlertSent: Date | null;
+      }
+    | null
+    | undefined;
+  currentExpenses: number;
+}
