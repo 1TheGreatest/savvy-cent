@@ -25,7 +25,7 @@ export const checkBudgetAlerts = inngest.createFunction(
             include: {
               accounts: {
                 where: {
-                  isDefault: true,
+                  isDefault: true, 
                 },
               },
             },
