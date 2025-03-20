@@ -17,8 +17,7 @@ const DashboardPage = async () => {
   }
 
   return (
-    <div className="px-5">
-      Budget Progess
+    <div className="space-y-8 px-5">
       {defaultAccount && (
         <BudgetProgress
           initialBudget={budgetData?.budget}
