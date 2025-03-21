@@ -21,6 +21,11 @@ export const serializeTransaction = (obj: SerializedTransactionProps) => {
   return serialized;
 };
 
+export const serializeAmount = (obj: SerializedTransactionProps) => ({
+  ...obj,
+  amount: obj.amount.toNumber(),
+});
+
 export const handleError = (error: unknown, message: string) => {
   console.log(error, message);
   throw error;
@@ -48,3 +53,32 @@ export const transactionSchema = z
       });
     }
   });
+
+export function isNewMonth(lastAlertDate: Date, currentDate: Date) {
+  return (
+    lastAlertDate.getMonth() !== currentDate.getMonth() ||
+    lastAlertDate.getFullYear() !== currentDate.getFullYear()
+  );
+}
+
+// Helper function to calculate next recurring date
+export function calculateNextRecurringDate(startDate, interval) {
+  const date = new Date(startDate);
+
+  switch (interval) {
+    case "DAILY":
+      date.setDate(date.getDate() + 1);
+      break;
+    case "WEEKLY":
+      date.setDate(date.getDate() + 7);
+      break;
+    case "MONTHLY":
+      date.setMonth(date.getMonth() + 1);
+      break;
+    case "YEARLY":
+      date.setFullYear(date.getFullYear() + 1);
+      break;
+  }
+
+  return date;
+}

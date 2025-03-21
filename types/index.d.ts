@@ -62,3 +62,33 @@ declare interface BudgetProgressProps {
     | undefined;
   currentExpenses: number;
 }
+declare interface TransactionFormProps {
+  accounts: {
+    balance: Decimal;
+    type: $Enums.AccountType;
+    id: string;
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    isDefault: boolean;
+  }[];
+  categories: (
+    | {
+        id: string;
+        name: string;
+        type: string;
+        color: string;
+        icon: string;
+        subcategories?: undefined;
+      }
+    | {
+        id: string;
+        name: string;
+        type: string;
+        color: string;
+        icon: string;
+        subcategories: string[];
+      }
+  )[];
+}
