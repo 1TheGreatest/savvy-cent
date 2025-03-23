@@ -4,6 +4,16 @@ declare interface CreateAccountProps {
   balance: Decimal;
   isDefault: boolean;
 }
+declare interface CreateTransactionProps {
+  amount: number;
+  type: "INCOME" | "EXPENSE";
+  date: Date;
+  category: string;
+  isRecurring: boolean;
+  accountId: string;
+  description?: string | undefined;
+  recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined;
+}
 
 declare interface SerializedAccountProps {
   balance: Decimal;

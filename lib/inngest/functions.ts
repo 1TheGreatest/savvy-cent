@@ -1,8 +1,6 @@
-import { sendEmail } from "@/app/api/send-email/route";
 import { db } from "../prisma";
 import { isNewMonth } from "../utils";
 import { inngest } from "./client";
-import EmailTemplate from "@/emails/template";
 
 // 1. Budget Alerts with Event Batching
 export const checkBudgetAlerts = inngest.createFunction(
@@ -74,20 +72,46 @@ export const checkBudgetAlerts = inngest.createFunction(
             isNewMonth(new Date(budget.lastAlertSent), new Date())) // Send only once per month
         ) {
           // Send email alert
-          await sendEmail({
-            to: budget.user.email,
-            subject: `Budget Alert for ${defaultAccount.name}`,
-            react: EmailTemplate({
-              userName: budget.user.name ?? "User",
-              type: "budget-alert",
-              data: {
+          const receiver = budget.user.email;
+          const accountName = defaultAccount.name ?? "Default Account";
+          const userName = budget.user.name;
+          const type = "budget-alert";
+          const budAmount = parseInt(budgetAmount.toFixed(1));
+          const totExpenses = parseInt(totalExpenses.toFixed(1));
+
+          try {
+            const response = await fetch("/api/send-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                receiver,
+                accountName,
+                userName,
+                type,
                 percentageUsed,
-                budgetAmount: parseInt(budgetAmount.toFixed(1)),
-                totalExpenses: parseInt(totalExpenses.toFixed(1)),
-                //  accountName: defaultAccount.name ?? "Default Account",
-              },
-            }),
-          });
+                budAmount,
+                totExpenses,
+              }),
+            });
+            if (response["status"] === 200) {
+              console.log("Email sent successfully");
+            }
+          } catch {
+            console.error("Failed to send email");
+          }
+
+          // await sendEmail({
+          //   react: EmailTemplate({
+          //     userName: budget.user.name ?? "User",
+          //     type: "budget-alert",
+          //     data: {
+          //       percentageUsed,
+          //       budgetAmount: parseInt(budgetAmount.toFixed(1)),
+          //       totalExpenses: parseInt(totalExpenses.toFixed(1)),
+          //       //  accountName: defaultAccount.name ?? "Default Account",
+          //     },
+          //   }),
+          // });
 
           // Update last alert sent
           await db.budget.update({
