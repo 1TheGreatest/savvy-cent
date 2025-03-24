@@ -1,7 +1,6 @@
 // this middleware runs before the app runs.
 import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { create } from "domain";
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -41,7 +40,7 @@ const clerk = clerkMiddleware(async (auth, request) => {
   }
 });
 
-export default createMiddleware(aj, clerk); 
+export default createMiddleware(aj, clerk);
 
 export const config = {
   matcher: [
