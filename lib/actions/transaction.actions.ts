@@ -185,7 +185,7 @@ export const openAIScanReceipt = async (file: File) => {
       Return {} if not a receipt.
     `;
 
-    // Call OpenAI's Vision API
+    // Call OpenAI's gpt-4o-mini API
     const response = await openAI.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
@@ -258,7 +258,10 @@ export async function getTransaction(id: string) {
   return serializeAmount(transaction);
 }
 
-export async function updateTransaction(id: string, data) {
+export async function updateTransaction(
+  id: string,
+  data: UpdateTransactionProps
+) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");

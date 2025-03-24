@@ -1,3 +1,4 @@
+import EmailTemplate from "@/emails/template";
 import { sendEmail } from "../actions/send-email";
 import { db } from "../prisma";
 import {
@@ -6,6 +7,8 @@ import {
   isTransactionDue,
 } from "../utils";
 import { inngest } from "./client";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
 // 1. Budget Alerts with Event Batching
 export const checkBudgetAlerts = inngest.createFunction(
@@ -77,22 +80,21 @@ export const checkBudgetAlerts = inngest.createFunction(
             isNewMonth(new Date(budget.lastAlertSent), new Date())) // Send only once per month
         ) {
           // Send email alert
-          const receiver = budget.user.email;
           const accountName = defaultAccount.name ?? "Default Account";
-          const userName = budget.user.name ?? "User";
-          const type = "budget-alert";
-          const budAmount = parseInt(budgetAmount.toFixed(1));
-          const totExpenses = parseInt(totalExpenses.toFixed(1));
 
           try {
             const response = await sendEmail({
-              receiver,
-              accountName,
-              userName,
-              type,
-              percentageUsed,
-              budAmount,
-              totExpenses,
+              receiver: budget.user.email,
+              title: `Budget Alert for ${accountName}`,
+              emailComponent: EmailTemplate({
+                userName: budget.user.name ?? "User",
+                type: "budget-alert",
+                emailData: {
+                  percentageUsed,
+                  budgetAmount: parseInt(budgetAmount.toFixed(1)),
+                  totalExpenses: parseInt(totalExpenses.toFixed(1)),
+                },
+              }),
             });
             if (response["status"] === 200) {
               console.log("Email sent successfully");
@@ -112,7 +114,7 @@ export const checkBudgetAlerts = inngest.createFunction(
   }
 );
 
-// Trigger recurring transactions with batching
+// 2. Trigger recurring transactions with batching
 export const triggerRecurringTransactions = inngest.createFunction(
   {
     id: "trigger-recurring-transactions", // Unique ID,
@@ -234,6 +236,173 @@ export const processRecurringTransaction = inngest.createFunction(
   }
 );
 
+// 3. Monthly Report Generation
+export const geminiGenerateFinancialInsights = async (
+  stats: StatProps,
+  month: string
+) => {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const prompt = `
+    Analyze this financial data and provide 3 concise, actionable insights.
+    Focus on spending patterns and practical advice.
+    Keep it friendly and conversational.
+
+    Financial Data for ${month}:
+    - Total Income: $${stats.totalIncome}
+    - Total Expenses: $${stats.totalExpenses}
+    - Net Income: $${stats.totalIncome - stats.totalExpenses}
+    - Expense Categories: ${Object.entries(stats.byCategory)
+      .map(([category, amount]) => `${category}: $${amount}`)
+      .join(", ")}
+
+    Format the response as a JSON array of strings, like this:
+    ["insight 1", "insight 2", "insight 3"]
+  `;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error("Error generating insights:", error);
+    return [
+      "Your highest expense category this month might need attention.",
+      "Consider setting up a budget for better financial management.",
+      "Track your recurring expenses to identify potential savings.",
+    ];
+  }
+};
+
+export const openAIGenerateFinancialInsights = async (
+  stats: StatProps,
+  month: string
+) => {
+  const openAI = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY!,
+  });
+  try {
+    // Write Prompt
+    const prompt = `Analyze this financial data and provide 3 concise, actionable insights.
+    Focus on spending patterns and practical advice.
+    Keep it friendly and conversational.
+
+    Financial Data for ${month}:
+    - Total Income: $${stats.totalIncome}
+    - Total Expenses: $${stats.totalExpenses}
+    - Net Income: $${stats.totalIncome - stats.totalExpenses}
+    - Expense Categories: ${Object.entries(stats.byCategory)
+      .map(([category, amount]) => `${category}: $${amount}`)
+      .join(", ")}
+
+    Format the response as a JSON array of strings, like this:
+    ["insight 1", "insight 2", "insight 3"]
+    `;
+
+    // Call OpenAI's gpt-4o-mini API
+    const response = await openAI.chat.completions.create({
+      model: "gpt-4o-mini-2024-07-18",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a financial analyst providing monthly financial insights.",
+        },
+        {
+          role: "user",
+          content: [{ type: "text", text: prompt }],
+        },
+      ],
+      max_tokens: 200,
+    });
+
+    // Extract and parse response
+    const textResponse = response.choices[0]?.message?.content?.trim();
+    if (!textResponse) throw new Error("No response from ChatGPT");
+    // Clean and parse JSON
+    const cleanedText = textResponse.replace(/```(?:json)?\n?/g, "").trim();
+    // Parse JSON
+    try {
+      const data = JSON.parse(cleanedText);
+      return data;
+    } catch (parseError) {
+      console.error("Error parsing JSON response:", parseError);
+      throw new Error("Invalid response format from OpenAI");
+    }
+  } catch (error) {
+    console.error("Error generating insights:", error);
+    return [
+      "Your highest expense category this month might need attention.",
+      "Consider setting up a budget for better financial management.",
+      "Track your recurring expenses to identify potential savings.",
+    ];
+  }
+};
+
+export const generateMonthlyReports = inngest.createFunction(
+  {
+    id: "generate-monthly-reports",
+    name: "Generate Monthly Reports",
+  },
+  { cron: "0 0 1 * *" }, // First day of each month
+  async ({ step }) => {
+    // Fetch all users with accounts
+    const users = await step.run("fetch-users", async () => {
+      return await db.user.findMany({
+        include: { accounts: true },
+      });
+    });
+
+    // Generate report for each user
+    for (const user of users) {
+      await step.run(`generate-report-${user.id}`, async () => {
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1); // Last month
+
+        // Get monthly stats to feed into AI
+        const stats = await getMonthlyStats(user.id, lastMonth);
+        const monthName = lastMonth.toLocaleString("default", {
+          month: "long",
+        });
+
+        // Generate AI insights
+        const insights = await geminiGenerateFinancialInsights(
+          stats,
+          monthName
+        );
+
+        // Send email alert
+        try {
+          const response = await sendEmail({
+            receiver: user.email,
+            title: `Your Monthly Financial Report - ${monthName}`,
+            emailComponent: EmailTemplate({
+              userName: user.name ?? "User",
+              type: "monthly-report",
+              emailData: {
+                stats,
+                month: monthName,
+                insights,
+              },
+            }),
+          });
+          if (response["status"] === 200) {
+            console.log("Email sent successfully");
+          }
+        } catch {
+          console.error("Failed to send email");
+        }
+      });
+    }
+
+    return { processed: users.length };
+  }
+);
+
 // function calculateNextRecurringDate(date, interval) {
 //   const next = new Date(date);
 //   switch (interval) {
@@ -253,37 +422,39 @@ export const processRecurringTransaction = inngest.createFunction(
 //   return next;
 // }
 
-// async function getMonthlyStats(userId, month) {
-//   const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
-//   const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+const getMonthlyStats = async (userId: string, month: Date) => {
+  const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
+  const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
-//   const transactions = await db.transaction.findMany({
-//     where: {
-//       userId,
-//       date: {
-//         gte: startDate,
-//         lte: endDate,
-//       },
-//     },
-//   });
+  // Fetch all transactions for the month
+  const transactions = await db.transaction.findMany({
+    where: {
+      userId,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  });
 
-//   return transactions.reduce(
-//     (stats, t) => {
-//       const amount = t.amount.toNumber();
-//       if (t.type === "EXPENSE") {
-//         stats.totalExpenses += amount;
-//         stats.byCategory[t.category] =
-//           (stats.byCategory[t.category] || 0) + amount;
-//       } else {
-//         stats.totalIncome += amount;
-//       }
-//       return stats;
-//     },
-//     {
-//       totalExpenses: 0,
-//       totalIncome: 0,
-//       byCategory: {},
-//       transactionCount: transactions.length,
-//     }
-//   );
-// }
+  // Reduce transaction data to 4 elements to calculate stats
+  return transactions.reduce(
+    (stats, t) => {
+      const amount = parseInt(t.amount.toNumber().toFixed(2));
+      if (t.type === "EXPENSE") {
+        stats.totalExpenses += amount;
+        stats.byCategory[t.category] =
+          (stats.byCategory[t.category] || 0) + amount;
+      } else {
+        stats.totalIncome += amount;
+      }
+      return stats;
+    },
+    {
+      totalExpenses: 0,
+      totalIncome: 0,
+      byCategory: {} as { [key: string]: number },
+      transactionCount: transactions.length,
+    }
+  );
+};

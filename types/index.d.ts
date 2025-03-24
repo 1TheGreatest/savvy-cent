@@ -15,6 +15,17 @@ declare interface CreateTransactionProps {
   recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined;
 }
 
+declare interface UpdateTransactionProps {
+  amount: number;
+  category: string;
+  type: "INCOME" | "EXPENSE";
+  date: Date;
+  isRecurring: boolean;
+  accountId: string;
+  description?: string | undefined;
+  recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined;
+}
+
 declare interface SerializedAccountProps {
   balance: Decimal;
   type: $Enums.AccountType;
@@ -72,6 +83,38 @@ declare interface BudgetProgressProps {
     | undefined;
   currentExpenses: number;
 }
+
+declare interface DashboardOverviewProps {
+  accounts: {
+    balance: Decimal;
+    type: $Enums.AccountType;
+    id: string;
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    isDefault: boolean;
+  }[];
+  transactions: {
+    id: string;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    type: $Enums.TransactionType;
+    amount: Decimal;
+    description: string | null;
+    date: Date;
+    accountId: string;
+    category: string;
+    isRecurring: boolean;
+    recurringInterval: $Enums.RecurringInterval;
+    status: $Enums.TransactionStatus;
+    receiptUrl: string | null;
+    nextRecurringDate: Date | null;
+    lastProcessed: Date | null;
+  }[];
+}
+
 declare interface TransactionFormProps {
   accounts: {
     balance: Decimal;
@@ -119,4 +162,37 @@ declare interface ReceiptScannerProps {
 
 declare interface TransactionPageSearchParams {
   searchParams: { edit?: string };
+}
+
+interface StatProps {
+  totalExpenses: number;
+  totalIncome: number;
+  byCategory: {
+    [key: string]: number;
+  };
+  transactionCount: number;
+}
+
+type MonthlyReportData = {
+  month: string;
+  stats: {
+    totalIncome: number;
+    totalExpenses: number;
+    byCategory: {
+      [key: string]: number;
+    };
+  };
+  insights: string[];
+};
+
+type BudgetAlertData = {
+  percentageUsed: number;
+  budgetAmount: number;
+  totalExpenses: number;
+};
+
+declare interface EmailTemplateProps {
+  userName: string;
+  type: string;
+  emailData: MonthlyReportData | BudgetAlertData;
 }

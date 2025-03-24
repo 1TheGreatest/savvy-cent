@@ -1,11 +1,15 @@
 import AccountCard from "@/components/account-card";
 import BudgetProgress from "@/components/budget-progress";
 import CreateAccountDrawer from "@/components/create-account-drawer";
+import DashboardOverview from "@/components/dashboard-overview";
 import { Card, CardContent } from "@/components/ui/card";
 import { getCurrentBudget } from "@/lib/actions/budget.actions";
-import { getUserAccounts } from "@/lib/actions/dashboard.actions";
+import {
+  getDashboardData,
+  getUserAccounts,
+} from "@/lib/actions/dashboard.actions";
 import { Plus } from "lucide-react";
-import React from "react";
+import React, { Suspense } from "react";
 
 const DashboardPage = async () => {
   const accounts = (await getUserAccounts()) ?? [];
@@ -16,6 +20,7 @@ const DashboardPage = async () => {
     budgetData = await getCurrentBudget(defaultAccount.id);
   }
 
+  const transactions = (await getDashboardData()) ?? [];
   return (
     <div className="space-y-8 px-5">
       {defaultAccount && (
@@ -24,7 +29,12 @@ const DashboardPage = async () => {
           currentExpenses={budgetData?.currentExpenses || 0}
         />
       )}
-      over all budget account grid
+      {/* overview */}
+      <Suspense fallback={"Loading..."}>
+        <DashboardOverview accounts={accounts} transactions={transactions} />
+      </Suspense>
+      all budget
+      {/* account grid */}
       <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2 lg:grid-cols-3">
         <CreateAccountDrawer>
           <Card className="hover:shadow-lg transition-shadow cursor-pointer boder-dashed">

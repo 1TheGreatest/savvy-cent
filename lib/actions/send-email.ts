@@ -1,25 +1,17 @@
 "use server";
-import EmailTemplate from "@/emails/template";
+import { JSX } from "react";
 import { Resend } from "resend";
 
 interface EmailParams {
   receiver: string;
-  accountName: string;
-  userName: string;
-  type: string;
-  percentageUsed: number;
-  budAmount: number;
-  totExpenses: number;
+  title: string;
+  emailComponent: JSX.Element | undefined;
 }
 
 export async function sendEmail({
   receiver,
-  accountName,
-  userName,
-  type,
-  percentageUsed,
-  budAmount,
-  totExpenses,
+  title,
+  emailComponent,
 }: EmailParams) {
   const resend = new Resend(process.env.RESEND_API_KEY || "");
 
@@ -27,16 +19,8 @@ export async function sendEmail({
     const { data, error } = await resend.emails.send({
       from: "SavvyCent <onboarding@resend.dev>",
       to: ["sampomahdev@gmail.com"],
-      subject: `Budget Alert for ${accountName}`,
-      react: EmailTemplate({
-        userName: userName,
-        type: type,
-        data: {
-          percentageUsed: percentageUsed,
-          budgetAmount: budAmount,
-          totalExpenses: totExpenses,
-        },
-      }),
+      subject: title,
+      react: emailComponent,
     });
 
     if (error) {

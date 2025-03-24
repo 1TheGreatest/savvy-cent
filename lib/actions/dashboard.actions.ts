@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "../prisma";
-import { handleError, serializeAccount } from "../utils";
+import { handleError, serializeAccount, serializeTransaction } from "../utils";
 import { revalidatePath } from "next/cache";
 
 export const createAccount = async ({
@@ -114,4 +114,25 @@ export const getUserAccounts = async () => {
   } catch (error) {
     handleError(error, "Error fetching accounts");
   }
+};
+
+export const getDashboardData = async () => {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Get all user transactions
+  const transactions = await db.transaction.findMany({
+    where: { userId: user.id },
+    orderBy: { date: "desc" },
+  });
+
+  return transactions.map(serializeTransaction);
 };
