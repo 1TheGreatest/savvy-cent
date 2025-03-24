@@ -7,8 +7,8 @@ import {
   serializeAmount,
 } from "../utils";
 import { revalidatePath } from "next/cache";
-import { request } from "@arcjet/next";
-import aj from "../arcjet";
+// import { request } from "@arcjet/next";
+// import aj from "../arcjet";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
@@ -23,28 +23,28 @@ export const createTransaction = async (data: CreateTransactionProps) => {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    // Get request object from arcjet
-    const req = await request();
-    // check rate limit
-    const decision = await aj.protect(req, {
-      requested: 1, // Specify how many tokens to consume per request
-      userId: userId,
-    });
+    // // Get request object from arcjet
+    // const req = await request();
+    // // check rate limit
+    // const decision = await aj.protect(req, {
+    //   requested: 1, // Specify how many tokens to consume per request
+    //   userId: userId,
+    // });
 
-    if (decision.isDenied()) {
-      if (decision.reason.isRateLimit()) {
-        const { remaining, reset } = decision.reason;
-        console.error({
-          code: "RATE_LIMIT_EXCEEDED",
-          details: {
-            remaining,
-            resetInSeconds: reset,
-          },
-        });
-        throw new Error("Too many requests. Please try again later.");
-      }
-      throw new Error("Request denied");
-    }
+    // if (decision.isDenied()) {
+    //   if (decision.reason.isRateLimit()) {
+    //     const { remaining, reset } = decision.reason;
+    //     console.error({
+    //       code: "RATE_LIMIT_EXCEEDED",
+    //       details: {
+    //         remaining,
+    //         resetInSeconds: reset,
+    //       },
+    //     });
+    //     throw new Error("Too many requests. Please try again later.");
+    //   }
+    //   throw new Error("Request denied");
+    // }
 
     const user = await db.user.findUnique({
       where: {
