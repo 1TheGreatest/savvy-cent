@@ -1,3 +1,4 @@
+import { $Enums } from ".prisma/client";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
@@ -62,7 +63,10 @@ export function isNewMonth(lastAlertDate: Date, currentDate: Date) {
 }
 
 // Helper function to calculate next recurring date
-export function calculateNextRecurringDate(startDate: Date, interval: string) {
+export function calculateNextRecurringDate(
+  startDate: Date,
+  interval: $Enums.RecurringInterval
+) {
   const date = new Date(startDate);
 
   switch (interval) {
@@ -81,4 +85,16 @@ export function calculateNextRecurringDate(startDate: Date, interval: string) {
   }
 
   return date;
+}
+
+// Utility functions
+export function isTransactionDue(transaction) {
+  // If no lastProcessed date, transaction is due
+  if (!transaction.lastProcessed) return true;
+
+  const today = new Date();
+  const nextDue = new Date(transaction.nextRecurringDate);
+
+  // Compare with nextDue date
+  return nextDue <= today;
 }

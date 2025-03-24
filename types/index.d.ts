@@ -101,6 +101,8 @@ declare interface TransactionFormProps {
         subcategories: string[];
       }
   )[];
+  editMode: boolean;
+  initialData: SerializedTransactionProps | null;
 }
 
 type ScannedData = {
@@ -113,4 +115,8 @@ type ScannedData = {
 
 declare interface ReceiptScannerProps {
   onScanComplete: (data: ScannedData) => void;
+}
+
+declare interface TransactionPageSearchParams {
+  searchParams: { edit?: string };
 }

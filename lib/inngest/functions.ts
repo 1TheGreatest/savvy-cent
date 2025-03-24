@@ -1,11 +1,15 @@
 import { sendEmail } from "../actions/send-email";
 import { db } from "../prisma";
-import { isNewMonth } from "../utils";
+import {
+  calculateNextRecurringDate,
+  isNewMonth,
+  isTransactionDue,
+} from "../utils";
 import { inngest } from "./client";
 
 // 1. Budget Alerts with Event Batching
 export const checkBudgetAlerts = inngest.createFunction(
-  { id: "Check Budget Alerts" },
+  { id: "check-budget-alerts", name: "Check Budget Alerts" },
   { cron: "0 */6 * * *" }, // Runs every 6 hours
   async ({ step }) => {
     // Fetch all budgets with default account
@@ -108,17 +112,127 @@ export const checkBudgetAlerts = inngest.createFunction(
   }
 );
 
-// Utility functions
-// function isTransactionDue(transaction) {
-//   // If no lastProcessed date, transaction is due
-//   if (!transaction.lastProcessed) return true;
+// Trigger recurring transactions with batching
+export const triggerRecurringTransactions = inngest.createFunction(
+  {
+    id: "trigger-recurring-transactions", // Unique ID,
+    name: "Trigger Recurring Transactions",
+  },
+  { cron: "0 0 * * *" }, // Daily at midnight
+  async ({ step }) => {
+    // Fetch all recurring transactions that are due
+    const recurringTransactions = await step.run(
+      "fetch-recurring-transactions",
+      async () => {
+        return await db.transaction.findMany({
+          where: {
+            isRecurring: true,
+            status: "COMPLETED",
+            OR: [
+              { lastProcessed: null }, // Never processed
+              {
+                nextRecurringDate: {
+                  lte: new Date(), // Due date passed
+                },
+              },
+            ],
+          },
+        });
+      }
+    );
 
-//   const today = new Date();
-//   const nextDue = new Date(transaction.nextRecurringDate);
+    // Send event for each recurring transaction in batches
+    if (recurringTransactions.length > 0) {
+      const events = recurringTransactions.map((transaction) => ({
+        name: "transaction.recurring.process",
+        data: {
+          transactionId: transaction.id,
+          userId: transaction.userId,
+        },
+      }));
 
-//   // Compare with nextDue date
-//   return nextDue <= today;
-// }
+      // Send events directly using inngest.send()
+      await inngest.send(events);
+    }
+
+    return { triggered: recurringTransactions.length }; // Return count
+  }
+);
+
+// Recurring Transaction Processing with Throttling
+export const processRecurringTransaction = inngest.createFunction(
+  {
+    id: "process-recurring-transaction",
+    name: "Process Recurring Transaction",
+    throttle: {
+      limit: 10, // Process 10 transactions
+      period: "1m", // per minute
+      key: "event.data.userId", // Throttle per user
+    },
+  },
+  { event: "transaction.recurring.process" },
+  async ({ event, step }) => {
+    // Validate event data
+    if (!event?.data?.transactionId || !event?.data?.userId) {
+      console.error("Invalid event data:", event);
+      return { error: "Missing required event data" };
+    }
+
+    await step.run("process-transaction", async () => {
+      const transaction = await db.transaction.findUnique({
+        where: {
+          id: event.data.transactionId,
+          userId: event.data.userId,
+        },
+        include: {
+          account: true,
+        },
+      });
+
+      if (!transaction || !isTransactionDue(transaction)) return; // Skip if not due
+
+      // Create new transaction and update account balance in a transaction
+      await db.$transaction(async (tx) => {
+        // Create new transaction
+        await tx.transaction.create({
+          data: {
+            type: transaction.type,
+            amount: transaction.amount,
+            description: `${transaction.description} (Recurring)`,
+            date: new Date(),
+            category: transaction.category,
+            userId: transaction.userId,
+            accountId: transaction.accountId,
+            isRecurring: false,
+          },
+        });
+
+        // Update account balance
+        const balanceChange =
+          transaction.type === "EXPENSE"
+            ? -transaction.amount.toNumber()
+            : transaction.amount.toNumber();
+
+        await tx.account.update({
+          where: { id: transaction.accountId },
+          data: { balance: { increment: balanceChange } },
+        });
+
+        // Update last processed date and next recurring date
+        await tx.transaction.update({
+          where: { id: transaction.id },
+          data: {
+            lastProcessed: new Date(),
+            nextRecurringDate: calculateNextRecurringDate(
+              new Date(),
+              transaction.recurringInterval!
+            ),
+          },
+        });
+      });
+    });
+  }
+);
 
 // function calculateNextRecurringDate(date, interval) {
 //   const next = new Date(date);
@@ -173,124 +287,3 @@ export const checkBudgetAlerts = inngest.createFunction(
 //     }
 //   );
 // }
-
-// // 1. Recurring Transaction Processing with Throttling
-// export const processRecurringTransaction = inngest.createFunction(
-//   {
-//     id: "process-recurring-transaction",
-//     name: "Process Recurring Transaction",
-//     throttle: {
-//       limit: 10, // Process 10 transactions
-//       period: "1m", // per minute
-//       key: "event.data.userId", // Throttle per user
-//     },
-//   },
-//   { event: "transaction.recurring.process" },
-//   async ({ event, step }) => {
-//     // Validate event data
-//     if (!event?.data?.transactionId || !event?.data?.userId) {
-//       console.error("Invalid event data:", event);
-//       return { error: "Missing required event data" };
-//     }
-
-//     await step.run("process-transaction", async () => {
-//       const transaction = await db.transaction.findUnique({
-//         where: {
-//           id: event.data.transactionId,
-//           userId: event.data.userId,
-//         },
-//         include: {
-//           account: true,
-//         },
-//       });
-
-//       if (!transaction || !isTransactionDue(transaction)) return;
-
-//       // Create new transaction and update account balance in a transaction
-//       await db.$transaction(async (tx) => {
-//         // Create new transaction
-//         await tx.transaction.create({
-//           data: {
-//             type: transaction.type,
-//             amount: transaction.amount,
-//             description: `${transaction.description} (Recurring)`,
-//             date: new Date(),
-//             category: transaction.category,
-//             userId: transaction.userId,
-//             accountId: transaction.accountId,
-//             isRecurring: false,
-//           },
-//         });
-
-//         // Update account balance
-//         const balanceChange =
-//           transaction.type === "EXPENSE"
-//             ? -transaction.amount.toNumber()
-//             : transaction.amount.toNumber();
-
-//         await tx.account.update({
-//           where: { id: transaction.accountId },
-//           data: { balance: { increment: balanceChange } },
-//         });
-
-//         // Update last processed date and next recurring date
-//         await tx.transaction.update({
-//           where: { id: transaction.id },
-//           data: {
-//             lastProcessed: new Date(),
-//             nextRecurringDate: calculateNextRecurringDate(
-//               new Date(),
-//               transaction.recurringInterval
-//             ),
-//           },
-//         });
-//       });
-//     });
-//   }
-// );
-
-// // Trigger recurring transactions with batching
-// export const triggerRecurringTransactions = inngest.createFunction(
-//   {
-//     id: "trigger-recurring-transactions", // Unique ID,
-//     name: "Trigger Recurring Transactions",
-//   },
-//   { cron: "0 0 * * *" }, // Daily at midnight
-//   async ({ step }) => {
-//     const recurringTransactions = await step.run(
-//       "fetch-recurring-transactions",
-//       async () => {
-//         return await db.transaction.findMany({
-//           where: {
-//             isRecurring: true,
-//             status: "COMPLETED",
-//             OR: [
-//               { lastProcessed: null },
-//               {
-//                 nextRecurringDate: {
-//                   lte: new Date(),
-//                 },
-//               },
-//             ],
-//           },
-//         });
-//       }
-//     );
-
-//     // Send event for each recurring transaction in batches
-//     if (recurringTransactions.length > 0) {
-//       const events = recurringTransactions.map((transaction) => ({
-//         name: "transaction.recurring.process",
-//         data: {
-//           transactionId: transaction.id,
-//           userId: transaction.userId,
-//         },
-//       }));
-
-//       // Send events directly using inngest.send()
-//       await inngest.send(events);
-//     }
-
-//     return { triggered: recurringTransactions.length };
-//   }
-// );
