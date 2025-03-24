@@ -23,6 +23,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 import { Switch } from "./ui/switch";
 import { useRouter } from "next/navigation";
+import ReceiptScanner from "./receipt-scanner";
 
 const AddTransactionForm = ({ accounts, categories }: TransactionFormProps) => {
   console.log(accounts.find((ac) => ac.isDefault)?.id);
@@ -84,9 +85,25 @@ const AddTransactionForm = ({ accounts, categories }: TransactionFormProps) => {
     (category) => category.type === watch("type")
   );
 
+  const handleScanComplete = (scannedData: {
+    amount: number;
+    description: string;
+    date: Date;
+    category: string;
+  }) => {
+    if (scannedData) {
+      setValue("amount", scannedData.amount.toString());
+      if (scannedData.description)
+        setValue("description", scannedData.description);
+      setValue("date", new Date(scannedData.date));
+      if (scannedData.category) setValue("category", scannedData.category);
+    }
+  };
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
       {/* AI SC */}
+      <ReceiptScanner onScanComplete={handleScanComplete} />
 
       {/* Transaction Type */}
       <div className="space-y-2">

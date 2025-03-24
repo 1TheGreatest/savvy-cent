@@ -102,3 +102,15 @@ declare interface TransactionFormProps {
       }
   )[];
 }
+
+type ScannedData = {
+  amount: number;
+  description: string;
+  date: Date;
+  category: string;
+  merchant: string;
+};
+
+declare interface ReceiptScannerProps {
+  onScanComplete: (data: ScannedData) => void;
+}

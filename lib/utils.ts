@@ -62,7 +62,7 @@ export function isNewMonth(lastAlertDate: Date, currentDate: Date) {
 }
 
 // Helper function to calculate next recurring date
-export function calculateNextRecurringDate(startDate, interval) {
+export function calculateNextRecurringDate(startDate: Date, interval: string) {
   const date = new Date(startDate);
 
   switch (interval) {

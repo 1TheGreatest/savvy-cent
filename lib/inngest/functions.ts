@@ -1,3 +1,4 @@
+import { sendEmail } from "../actions/send-email";
 import { db } from "../prisma";
 import { isNewMonth } from "../utils";
 import { inngest } from "./client";
@@ -74,24 +75,20 @@ export const checkBudgetAlerts = inngest.createFunction(
           // Send email alert
           const receiver = budget.user.email;
           const accountName = defaultAccount.name ?? "Default Account";
-          const userName = budget.user.name;
+          const userName = budget.user.name ?? "User";
           const type = "budget-alert";
           const budAmount = parseInt(budgetAmount.toFixed(1));
           const totExpenses = parseInt(totalExpenses.toFixed(1));
 
           try {
-            const response = await fetch("/api/send-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                receiver,
-                accountName,
-                userName,
-                type,
-                percentageUsed,
-                budAmount,
-                totExpenses,
-              }),
+            const response = await sendEmail({
+              receiver,
+              accountName,
+              userName,
+              type,
+              percentageUsed,
+              budAmount,
+              totExpenses,
             });
             if (response["status"] === 200) {
               console.log("Email sent successfully");
@@ -99,19 +96,6 @@ export const checkBudgetAlerts = inngest.createFunction(
           } catch {
             console.error("Failed to send email");
           }
-
-          // await sendEmail({
-          //   react: EmailTemplate({
-          //     userName: budget.user.name ?? "User",
-          //     type: "budget-alert",
-          //     data: {
-          //       percentageUsed,
-          //       budgetAmount: parseInt(budgetAmount.toFixed(1)),
-          //       totalExpenses: parseInt(totalExpenses.toFixed(1)),
-          //       //  accountName: defaultAccount.name ?? "Default Account",
-          //     },
-          //   }),
-          // });
 
           // Update last alert sent
           await db.budget.update({

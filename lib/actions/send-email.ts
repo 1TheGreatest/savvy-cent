@@ -12,22 +12,21 @@ interface EmailParams {
   totExpenses: number;
 }
 
-export async function POST(req: Request) {
-  const {
-    receiver,
-    accountName,
-    userName,
-    type,
-    percentageUsed,
-    budAmount,
-    totExpenses,
-  }: EmailParams = await req.json();
+export async function sendEmail({
+  receiver,
+  accountName,
+  userName,
+  type,
+  percentageUsed,
+  budAmount,
+  totExpenses,
+}: EmailParams) {
   const resend = new Resend(process.env.RESEND_API_KEY || "");
 
   try {
     const { data, error } = await resend.emails.send({
       from: "SavvyCent <onboarding@resend.dev>",
-      to: [receiver],
+      to: ["sampomahdev@gmail.com"],
       subject: `Budget Alert for ${accountName}`,
       react: EmailTemplate({
         userName: userName,
