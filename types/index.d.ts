@@ -148,6 +148,50 @@ declare interface TransactionFormProps {
   initialData: SerializedTransactionProps | null;
 }
 
+type Account = {
+  balance: Decimal;
+  type: $Enums.AccountType;
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  isDefault: boolean;
+};
+
+type Budget =
+  | {
+      budget: {
+        amount: number;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        lastAlertSent: Date | null;
+      } | null;
+      currentExpenses: number;
+    }
+  | undefined;
+
+type Transaction = {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  type: $Enums.TransactionType;
+  amount: Decimal;
+  description: string | null;
+  date: Date;
+  accountId: string;
+  category: string;
+  isRecurring: boolean;
+  recurringInterval: $Enums.RecurringInterval;
+  status: $Enums.TransactionStatus;
+  receiptUrl: string | null;
+  nextRecurringDate: Date | null;
+  lastProcessed: Date | null;
+};
+
 type ScannedData = {
   amount: number;
   description: string;

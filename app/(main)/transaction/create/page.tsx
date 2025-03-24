@@ -7,7 +7,7 @@ import React from "react";
 const AddTransactionPage = async ({
   searchParams,
 }: TransactionPageSearchParams) => {
-  const accounts = (await getUserAccounts()) ?? [];
+  const accounts = (await getUserAccounts()) ?? []; // advisable to use useState and useEffect and should be in component
 
   const editId = searchParams?.edit;
 

@@ -79,10 +79,17 @@ const DashboardOverview = ({
           </CardTitle>
           <Select
             value={selectedAccountId}
+            defaultValue={selectedAccountId}
             onValueChange={(value) => setSelectedAccountId(value)}
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Select account" />
+              <SelectValue
+                placeholder="Select account"
+                defaultValue={selectedAccountId}
+              >
+                {accounts.find((account) => account.id === selectedAccountId)
+                  ?.name || "Select account"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {accounts.map((account) => (
