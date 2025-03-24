@@ -1,5 +1,7 @@
 // this middleware runs before the app runs.
+import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { create } from "domain";
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -7,7 +9,29 @@ const isProtectedRoute = createRouteMatcher([
   "/transaction(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, request) => {
+const aj = arcjet({
+  key: process.env.ARCJET_KEY!,
+  rules: [
+    // Block common attacks e.g. SQL injection, XSS, CSRF
+    shield({
+      // Will block requests. Use "DRY_RUN" to log only
+      mode: "LIVE",
+    }),
+    detectBot({
+      // Will block requests. Use "DRY_RUN" to log only
+      mode: "LIVE",
+      // Configured with a list of bots to allow.
+      // All other detected bots will be blocked
+      // See https://arcjet.com/bot-list
+      allow: [
+        "CATEGORY:SEARCH_ENGINE", // All search engines
+        "GO_HTTP", // Go HTTP client
+      ],
+    }),
+  ],
+});
+
+const clerk = clerkMiddleware(async (auth, request) => {
   const { userId } = await auth();
 
   if (!userId && isProtectedRoute(request)) {
@@ -16,6 +40,8 @@ export default clerkMiddleware(async (auth, request) => {
     return redirectToSignIn();
   }
 });
+
+export default createMiddleware(aj, clerk); 
 
 export const config = {
   matcher: [
