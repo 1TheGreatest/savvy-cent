@@ -1,64 +1,64 @@
 # SavvyCent
 
-SavvyCent is a comprehensive **finance management platform** designed to empower users with seamless tracking and analysis of their financial activities. Built with modern technologies like **React**, **Next.js**, and **TailwindCSS**, it offers a user-friendly interface coupled with powerful features to enhance personal and business finance management.
+SavvyCent is a comprehensive **finance management platform** designed to empower users with seamless tracking and analysis of their financial activities. Built with modern technologies like **React**, **Next.js**, and **TailwindCSS**, it offers a user-friendly interface coupled with powerful features to enhance personal and business finance management.
 
 ## 🚀 Features
 
-- **Multi-Account Income & Expense Tracking**:Monitor financial transactions across various accounts with intelligent categorization, including labels like shopping, rent, food, and salary
+- **Multi-Account Income & Expense Tracking**: Monitor financial transactions across various accounts with intelligent categorization, including labels like shopping, rent, food, and salary
 
-- **AI-Powered Receipt Data Extraction**:Utilize OpenAI's API to automatically extract and categorize data from uploaded receipts, streamlining data entry and organization
+- **AI-Powered Receipt Data Extraction**: Utilize OpenAI's API to automatically extract and categorize data from uploaded receipts, streamlining data entry and organization
 
-- **Recurring Transactions**:Set up and manage recurring transactions to automate regular income and expenses
+- **Recurring Transactions**: Set up and manage recurring transactions to automate regular income and expenses
 
-- **Spending Limit Alerts**:Receive email notifications when approaching predefined spending thresholds, helping maintain budget discipline
+- **Spending Limit Alerts**: Receive email notifications when approaching predefined spending thresholds, helping maintain budget discipline
 
-- **Interactive Financial Visualizations**:Analyze daily transactions and long-term financial data through dynamic charts and graphs powered by Recharts
+- **Interactive Financial Visualizations**: Analyze daily transactions and long-term financial data through dynamic charts and graphs powered by Recharts
 
-- **Personalized Monthly AI Reports**:Get AI-generated monthly email reports providing insights into spending habits and financial health
+- **Personalized Monthly AI Reports**: Get AI-generated monthly email reports providing insights into spending habits and financial health
 
-- **Secure User Authentication**:Implemented via Clerk to ensure robust and seamless user login and registration processes
+- **Secure User Authentication**: Implemented via Clerk to ensure robust and seamless user login and registration processes
 
-- **Database Management**:Leveraging Prisma with a PostgreSQL database hosted on Supabase for efficient and scalable data handling
+- **Database Management**: Leveraging Prisma with a PostgreSQL database hosted on Supabase for efficient and scalable data handling
 
-- **Rate Limiting and Security**:Integrated Arcjet to prevent server overload by limiting transaction entries and protecting against potential attacks and bot activities
+- **Rate Limiting and Security**: Integrated Arcjet to prevent server overload by limiting transaction entries and protecting against potential attacks and bot activities
 
-- **Automated Notifications and Task Scheduling**:Utilized Inngest to set up cron jobs for sending budget alerts, monthly AI insights, and processing recurring transactions
+- **Automated Notifications and Task Scheduling**: Utilized Inngest to set up cron jobs for sending budget alerts, monthly AI insights, and processing recurring transactions
 
 ## 🛠️ Tech Stack
 
-- **Frontend** React, Next.js, TailwindCS
+- **Frontend** React, Next.js, TailwindCSS
 
-- **Backend** Node.js, Prisa
+- **Backend** Node.js, Prisma
 
-- **Database** PostgreSQL (hosted on Supabas)
+- **Database** PostgreSQL (hosted on Supabase)
 
-- **Authentication** Clek
+- **Authentication** Clerk
 
-- **AI Integration** OpenAI AI
+- **AI Integration** OpenAI
 
-- **Data Visualization** Rechars
+- **Data Visualization** Recharts
 
-- **Security and Rate Limiting** Arcjt
+- **Security and Rate Limiting** Arcjet
 
-- **Task Scheduling** Innget
+- **Task Scheduling** Inngest
 
 ## 📂 Project Structure
 
-- \*_`app/`_: Main application components and pags.
+- \*_`app/`_: Main application components and pages.
 
-- \*_`components/`_: Reusable UI componens.
+- \*_`components/`_: Reusable UI components.
 
-- \*_`data/`_: Static data and configuratios.
+- \*_`data/`_: Static data and configurations.
 
-- \*_`hooks/`_: Custom React hooks for shared logc.
+- \*_`hooks/`_: Custom React hooks for shared logic.
 
-- \*_`lib/`_: Utility functions and libraris.
+- \*_`lib/`_: Utility functions and libraries.
 
-- \*_`prisma/`_: Prisma schema and database migratios.
+- \*_`prisma/`_: Prisma schema and database migrations.
 
-- \*_`public/`_: Static assets like images and fons.
+- \*_`public/`_: Static assets like images and fonts.
 
-- \*_`types/`_: TypeScript type definitios.
+- \*_`types/`_: TypeScript type definitions.
 
 ## 🏗️ Installation & Setup
 
@@ -66,24 +66,22 @@ SavvyCent is a comprehensive **finance management platform** designed to empower
 
 Ensure you have the following installed:
 
-- [Node.js](https://nodejs.og/)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.cm/)
+- [Node.js](https://nodejs.og/)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.cm/)
 
 ### Clone the Repository
 
 ```bsh
-git clone https://github.com/1TheGreatest/savvy-cent.git
-cd savvy-ent
+ git clone https://github.com/1TheGreatest/savvy-cent.git
+cd savvy-cent
 ```
-
-
 
 ### Install Dependencies
 
 ```bsh
-npm install
+ npm install
 # or
-yarn insall
+yarn install
 ```
 
 
@@ -93,7 +91,7 @@ yarn insall
 Create a `.env.local` file in the root directory and configure the following variables:
 
 ```nv
-DATABASE_URL=
+ DATABASE_URL=
 DIRECT_URL=
 
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
@@ -107,22 +105,18 @@ GEMINI_API_KEY=
 
 RESEND_API_KEY=
 
-ARCJET_EY=
+ARCJET_KEY=
 ```
-
-
 
 Replace the placeholders with your actual credentials.
 
 ### Run the Development Server
 
 ```bsh
-npm run dev
+ npm run dev
 # or
-yarndev
+yarn dev
 ```
-
-
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
