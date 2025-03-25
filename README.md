@@ -1,36 +1,135 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SavvyCent
 
-## Getting Started
+SavvyCent is a comprehensive **finance management platform** designed to empower users with seamless tracking and analysis of their financial activities. Built with modern technologies like **React**, **Next.js**, and **TailwindCSS**, it offers a user-friendly interface coupled with powerful features to enhance personal and business finance management.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Multi-Account Income & Expense Tracking**:Monitor financial transactions across various accounts with intelligent categorization, including labels like shopping, rent, food, and salary
+
+- **AI-Powered Receipt Data Extraction**:Utilize OpenAI's API to automatically extract and categorize data from uploaded receipts, streamlining data entry and organization
+
+- **Recurring Transactions**:Set up and manage recurring transactions to automate regular income and expenses
+
+- **Spending Limit Alerts**:Receive email notifications when approaching predefined spending thresholds, helping maintain budget discipline
+
+- **Interactive Financial Visualizations**:Analyze daily transactions and long-term financial data through dynamic charts and graphs powered by Recharts
+
+- **Personalized Monthly AI Reports**:Get AI-generated monthly email reports providing insights into spending habits and financial health
+
+- **Secure User Authentication**:Implemented via Clerk to ensure robust and seamless user login and registration processes
+
+- **Database Management**:Leveraging Prisma with a PostgreSQL database hosted on Supabase for efficient and scalable data handling
+
+- **Rate Limiting and Security**:Integrated Arcjet to prevent server overload by limiting transaction entries and protecting against potential attacks and bot activities
+
+- **Automated Notifications and Task Scheduling**:Utilized Inngest to set up cron jobs for sending budget alerts, monthly AI insights, and processing recurring transactions
+
+## 🛠️ Tech Stack
+
+- **Frontend** React, Next.js, TailwindCS
+
+- **Backend** Node.js, Prisa
+
+- **Database** PostgreSQL (hosted on Supabas)
+
+- **Authentication** Clek
+
+- **AI Integration** OpenAI AI
+
+- **Data Visualization** Rechars
+
+- **Security and Rate Limiting** Arcjt
+
+- **Task Scheduling** Innget
+
+## 📂 Project Structure
+
+- \*_`app/`_: Main application components and pags.
+
+- \*_`components/`_: Reusable UI componens.
+
+- \*_`data/`_: Static data and configuratios.
+
+- \*_`hooks/`_: Custom React hooks for shared logc.
+
+- \*_`lib/`_: Utility functions and libraris.
+
+- \*_`prisma/`_: Prisma schema and database migratios.
+
+- \*_`public/`_: Static assets like images and fons.
+
+- \*_`types/`_: TypeScript type definitios.
+
+## 🏗️ Installation & Setup
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- [Node.js](https://nodejs.og/)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.cm/)
+
+### Clone the Repository
+
+```bsh
+git clone https://github.com/1TheGreatest/savvy-cent.git
+cd savvy-ent
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Install Dependencies
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bsh
+npm install
+# or
+yarn insall
+```
 
-## Learn More
+
 
-To learn more about Next.js, take a look at the following resources:
+### Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create a `.env.local` file in the root directory and configure the following variables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```nv
+DATABASE_URL=
+DIRECT_URL=
 
-## Deploy on Vercel
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/onboarding
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+GEMINI_API_KEY=
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+RESEND_API_KEY=
+
+ARCJET_EY=
+```
+
+
+
+Replace the placeholders with your actual credentials.
+
+### Run the Development Server
+
+```bsh
+npm run dev
+# or
+yarndev
+```
+
+
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+## 🌍 Live Demo
+
+Check out the live version: [SavvyCent](https://savvy-cent.vercel.app/)
+
+## Contact
+
+Feel free to reach out to me via [email](mailto:sampomahdev@gmail.com) or connect with me on [LinkedIn](https://www.linkedin.com/in/solomon-ampomah-a67128141/).
