@@ -91,7 +91,7 @@ const TransactionTable = ({ transactions }: TransactionsProps) => {
 
   useEffect(() => {
     if (error) {
-      toast.error("Failed to delete transactions. Please try again.");
+      toast.error(error);
     }
   }, [error]);
 

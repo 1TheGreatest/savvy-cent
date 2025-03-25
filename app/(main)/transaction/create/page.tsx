@@ -9,7 +9,7 @@ const AddTransactionPage = async ({
 }: TransactionPageSearchParams) => {
   const accounts = (await getUserAccounts()) ?? []; // advisable to use useState and useEffect and should be in component
 
-  const editId = searchParams?.edit;
+  const editId = ((await searchParams)?.edit as string) || "";
 
   let initialData = null;
   if (editId) {

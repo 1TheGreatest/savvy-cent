@@ -26,7 +26,7 @@ const ReceiptScanner = ({ onScanComplete }: ReceiptScannerProps) => {
 
   useEffect(() => {
     if (error) {
-      toast.error("Error scanning receipt");
+      toast.error(error);
     }
   }, [error]);
 

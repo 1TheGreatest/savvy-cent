@@ -1,4 +1,3 @@
-import { handleError } from "@/lib/utils";
 import { useState } from "react";
 
 const useFetch = (callback) => {
@@ -14,8 +13,11 @@ const useFetch = (callback) => {
       const response = await callback(...args);
       setData(response);
     } catch (error) {
-      setErrorMessage("Error fetching data");
-      handleError(error, "Error fetching data");
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage(String(error));
+      }
     } finally {
       setLoading(false);
     }

@@ -9,9 +9,9 @@ const aj = arcjet({
     tokenBucket({
       mode: "LIVE",
       characteristics: ["userId"],
-      refillRate: 2, // 5 tokens per interval
-      interval: 20, // per hour
-      capacity: 2, // maximum bucket capacity of 10
+      refillRate: 5, // 5 tokens per interval
+      interval: 3600, // per hour
+      capacity: 10, // maximum bucket capacity of 10
     }),
   ],
 });

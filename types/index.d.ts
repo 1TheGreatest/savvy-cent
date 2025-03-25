@@ -205,7 +205,7 @@ declare interface ReceiptScannerProps {
 }
 
 declare interface TransactionPageSearchParams {
-  searchParams: { edit?: string };
+  searchParams?: Promise<SegmentParams>;
 }
 
 interface StatProps {

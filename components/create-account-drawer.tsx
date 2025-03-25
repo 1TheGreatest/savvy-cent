@@ -54,7 +54,6 @@ const CreateAccountDrawer = ({ children }: { children: React.ReactNode }) => {
     },
   });
 
-
   // Invoking the server actions
   const {
     data: newAccount,
@@ -73,7 +72,7 @@ const CreateAccountDrawer = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (error) {
-      toast.error("Failed to create account. Please try again.");
+      toast.error(error);
     }
   }, [error]);
 

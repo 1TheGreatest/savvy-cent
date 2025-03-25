@@ -22,9 +22,8 @@ const AccountCard = ({
   id,
   isDefault,
 }: SerializedAccountProps) => {
-
   // Fetch the updated account data from the server
-  // Invoking the server actions 
+  // Invoking the server actions
   const {
     data: updatedAccount,
     loading: updateDefaultLoading,
@@ -40,10 +39,9 @@ const AccountCard = ({
 
   useEffect(() => {
     if (error) {
-      toast.error("Failed to update default account. Please try again.");
+      toast.error(error);
     }
   }, [error]);
-
 
   // Handle the default account change
   const handleDefaultChange = async (

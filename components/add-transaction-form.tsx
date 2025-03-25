@@ -27,6 +27,7 @@ import { Calendar } from "./ui/calendar";
 import { Switch } from "./ui/switch";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReceiptScanner from "./receipt-scanner";
+import { err } from "inngest/types";
 
 const AddTransactionForm = ({
   accounts,
@@ -96,11 +97,7 @@ const AddTransactionForm = ({
 
   useEffect(() => {
     if (error) {
-      toast.error(
-        editMode
-          ? "Failed to update transaction. Please try again."
-          : "Failed to create transaction. Please try again."
-      );
+      toast.error(error);
     }
   }, [editMode, error]);
 
