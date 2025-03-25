@@ -71,26 +71,24 @@ Ensure you have the following installed:
 
 ### Clone the Repository
 
-```bsh
+```bash
  git clone https://github.com/1TheGreatest/savvy-cent.git
 cd savvy-cent
 ```
 
 ### Install Dependencies
 
-```bsh
+```bash
  npm install
 # or
 yarn install
 ```
 
-
-
 ### Environment Variables
 
 Create a `.env.local` file in the root directory and configure the following variables:
 
-```nv
+```env
  DATABASE_URL=
 DIRECT_URL=
 
@@ -112,7 +110,7 @@ Replace the placeholders with your actual credentials.
 
 ### Run the Development Server
 
-```bsh
+```bash
  npm run dev
 # or
 yarn dev
